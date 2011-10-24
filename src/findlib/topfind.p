@@ -20,8 +20,13 @@ let exec_test s =
 in
 
 if not(exec_test "Topfind.reset;;") then (
-  Topdirs.dir_load Format.err_formatter "@SITELIB@/findlib/findlib.cma";
-  Topdirs.dir_load Format.err_formatter "@SITELIB@/findlib/findlib_top.cma";
+  if Dynlink.is_native then (
+    Topdirs.dir_load Format.err_formatter "@SITELIB@/findlib/findlib.cmxs";
+    Topdirs.dir_load Format.err_formatter "@SITELIB@/findlib/findlib_top.cmxs";
+  ) else (
+    Topdirs.dir_load Format.err_formatter "@SITELIB@/findlib/findlib.cma";
+    Topdirs.dir_load Format.err_formatter "@SITELIB@/findlib/findlib_top.cma";
+  );
 );;
 
 (* Old: *)

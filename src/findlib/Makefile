@@ -25,15 +25,16 @@ OBJECTS        = findlib_config.cmo fl_split.cmo fl_metatoken.cmo fl_meta.cmo \
 TOBJECTS       = topfind.cmo
 
 XOBJECTS       = $(OBJECTS:.cmo=.cmx)
+XTOBJECTS      = $(TOBJECTS:.cmo=.cmx)
 
 OCAMLFIND_OBJECTS = ocaml_args.cmo frontend.cmo
-OCAMLFIND_XOBJECTS = ocaml_args.cmx frontend.cmx
+OCAMLFIND_XOBJECTS = $(OCAMLFILE_OBJECTS:.cmo=.cmx)
 
 NUMTOP_OBJECTS = num_top_printers.cmo num_top.cmo
 
 all: ocamlfind$(EXEC_SUFFIX) findlib.cma findlib_top.cma topfind num_top.cma
 
-opt: ocamlfind_opt$(EXEC_SUFFIX) findlib.cmxa topfind
+opt: ocamlfind_opt$(EXEC_SUFFIX) findlib.cmxs findlib_top.cmxs topfind
 
 ocamlfind$(EXEC_SUFFIX): findlib.cma $(OCAMLFIND_OBJECTS)
 	$(OCAMLC) -custom -o ocamlfind$(EXEC_SUFFIX) findlib.cma unix.cma \
@@ -51,6 +52,12 @@ findlib_top.cma: $(TOBJECTS)
 
 findlib.cmxa: $(XOBJECTS)
 	$(OCAMLOPT) -a -o findlib.cmxa $(XOBJECTS)
+
+findlib.cmxs: findlib.cmxa
+	$(OCAMLOPT) -linkall -shared -o findlib.cmxs findlib.cmxa
+
+findlib_top.cmxs: $(XTOBJECTS)
+	$(OCAMLOPT) -linkall -shared -o findlib_top.cmxs $(XTOBJECTS)
 
 findlib_config.ml: findlib_config.mlp $(TOP)/Makefile.config
 	USE_CYGPATH="$(USE_CYGPATH)"; \
@@ -73,7 +80,7 @@ num_top.cma: $(NUMTOP_OBJECTS)
 	$(OCAMLC) -a -o num_top.cma $(NUMTOP_OBJECTS)
 
 clean:
-	rm -f *.cmi *.cmo *.cma *.cmx *.a *.o *.cmxa \
+	rm -f *.cmi *.cmo *.cma *.cmx *.a *.o *.cmxa *.cmxs \
 	  fl_meta.ml findlib_config.ml findlib.mml topfind \
 	  ocamlfind$(EXEC_SUFFIX) ocamlfind_opt$(EXEC_SUFFIX)
 
@@ -81,7 +88,7 @@ install: all
 	mkdir -p "$(prefix)$(OCAML_SITELIB)/$(NAME)"
 	mkdir -p "$(prefix)$(OCAMLFIND_BIN)"
 	test $(INSTALL_TOPFIND) -eq 0 || cp topfind "$(prefix)$(OCAML_CORE_STDLIB)"
-	files=`$(TOP)/tools/collect_files $(TOP)/Makefile.config findlib.cmi findlib.mli findlib.cma topfind.cmi topfind.mli fl_package_base.mli fl_package_base.cmi fl_metascanner.mli fl_metascanner.cmi fl_metatoken.cmi findlib_top.cma findlib.cmxa findlib.a META` && \
+	files=`$(TOP)/tools/collect_files $(TOP)/Makefile.config findlib.cmi findlib.mli findlib.cma topfind.cmi topfind.mli fl_package_base.mli fl_package_base.cmi fl_metascanner.mli fl_metascanner.cmi fl_metatoken.cmi findlib_top.cma findlib.cmxa findlib.a findlib.cmxs findlib_top.cmxs META` && \
 	cp $$files "$(prefix)$(OCAML_SITELIB)/$(NAME)"
 	f="ocamlfind$(EXEC_SUFFIX)"; { test -f ocamlfind_opt$(EXEC_SUFFIX) && f="ocamlfind_opt$(EXEC_SUFFIX)"; }; \
 	cp $$f "$(prefix)$(OCAMLFIND_BIN)/ocamlfind$(EXEC_SUFFIX)"
