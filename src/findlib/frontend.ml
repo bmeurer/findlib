@@ -796,7 +796,7 @@ let ocamlc which () =
   begin match which with
     "ocamlc"     -> predicates := "byte" :: !predicates;
   | "ocamlcp"    -> predicates := "byte" :: !predicates;
-  | "ocamlmklib" -> predicates := "byte" :: "native" :: !predicates;
+  | "ocamlmklib" -> ();
   | "ocamlmktop" -> predicates := "byte" :: "create_toploop" :: !predicates;
   | "ocamlopt"   -> predicates := "native" :: !predicates;
   | _            -> failwith "unsupported backend"
